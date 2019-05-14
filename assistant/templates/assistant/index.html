@@ -1,5 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-<p class="lead text-center">Hi</p>
+<div class="row">
+    <div class="col-md-4">
+        <h1 class="lead text-center">{{ info.message }}</h1>
+        <h5 class="lead text-center">{{ info.message_timestamp }}</h5>
+    </div>
+    <div class="col-md-4">
+
+    </div>
+    <div class="col-md-4">
+
+    </div>
+</div>
 {% endblock %}

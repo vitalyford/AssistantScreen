@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-sm-4"></div>
+    <div class="col-sm-4 mt-5">
+        <form class="form-horizontal" action="{% url 'assistant:send-message' %}" method="post">
+        {% csrf_token %}
+            <div class="input-group mb-3">
+              <textarea name="message" class="form-control" rows="5" required autofocus></textarea>
+              <div class="input-group-append">
+                <button class="btn btn-outline-primary" type="submit">Send</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <select class="form-control" name="quickSelect" onchange="this.form.submit()">
+                <option id="-1">Send a quick message</option>
+              {% for m in quick_messages %}
+                <option name="{{ m.id }}">{{ m }}</option>
+              {% endfor %}
+              </select>
+            </div>
+        </form>
+    </div>
+    <div class="col-sm-4"></div>
+</div>
+{% endblock %}

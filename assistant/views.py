@@ -1,6 +1,7 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.contrib import messages
 
 from .models import Info
 
@@ -10,8 +11,26 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 
 
+def send_message(request):
+    if request.user.is_superuser and 'message' in request.POST:
+        message = request.POST.get('message')
+        info = Info.objects.all()
+        if info.count() > 0:
+            info.message = message
+            info.save()
+        else:
+            info = Info(message=message)
+            info.save()
+    elif request.user.is_superuser:
+        return render(request, 'assistant/send-message.html', {})
+    return render(request, 'assistant/index.html', {})
+
+
 def index(request):
     context = {}
+    info = Info.objects.all()
+    if info.count() > 0:
+        context['info'] = info[0]
     return render(request, 'assistant/index.html', context)
 
 
