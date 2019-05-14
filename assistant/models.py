@@ -1,3 +1,11 @@
+import datetime
 from django.db import models
+from django.utils import timezone
 
-# Create your models here.
+
+class Info(models.Model):
+    message           = models.CharField(max_length=200)
+    message_timestamp = models.DateTimeField('date messaged')
+
+    def was_updated_recently(self):
+        return self.message_timestamp >= timezone.now() - datetime.timedelta(hours=3)
