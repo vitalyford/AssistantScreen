@@ -1,3 +1,9 @@
+import base64
+import re
+from io import BytesIO
+
+from PIL import Image, ImageFilter
+
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -9,6 +15,30 @@ from .models import Info, QuickMessage
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
+
+
+def detect_face(request):
+    context = {}
+    imageBase64 = re.search(r'base64,(.*)', request.POST.get('imageBase64')).group(1)
+    img = save_image_from_base64(imageBase64, 'temp.jpg')
+    img = img.filter(ImageFilter.FIND_EDGES)
+    context['imgB64'] = 'data:image/jpeg;base64,' + PILimageToBase64(img)
+    context['status'] = 'success'
+    return JsonResponse(context)
+
+
+def save_image_from_base64(imageBase64: str, filename: str) -> Image:
+    imgdata = base64.b64decode(imageBase64)
+    img = Image.open(BytesIO(imgdata))
+    with open(filename, 'wb') as f:
+        f.write(imgdata)
+    return img
+
+
+def PILimageToBase64(image: Image) -> str:
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    return base64.b64encode(buffered.getvalue()).decode('UTF-8')
 
 
 def check_for_update(request):

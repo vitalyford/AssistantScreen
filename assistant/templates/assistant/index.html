@@ -5,16 +5,17 @@ Discover Innovation &#8594; Deliver Success
 {% endblock %}
 
 {% block content %}
-<div class="row d-flex align-items-center h-100" >
+<div class="row d-flex align-items-center h-100 text-center" >
     <div class="col-md-3">
-        <h3 class="text-center font-weight-light" id="messageField">{{ info.message }}</h3>
-        <h5 class="text-center font-weight-light font-italic mt-4">{{ info.message_timestamp }}</h5>
+        <h3 class="font-weight-light" id="messageField">{{ info.message }}</h3>
+        <h5 class="font-weight-light font-italic mt-4">{{ info.message_timestamp }}</h5>
     </div>
     <div class="col-md-6 text-center">
-        <video autoplay="true" id="videoElement" class="w-100 border border-secondary rounded"></video>
+        <video autoplay="true" id="videoElement" class="w-100 border border-primary rounded"></video>
     </div>
-    <div class="col-md-3">
-EMPTY
+    <div class="col-md-3 text-center">
+        <h3 class="font-weight-light">Visitors</h3>
+        <canvas id="canvas" class="w-100"></canvas>
     </div>
 </div>
 {% endblock %}
@@ -51,9 +52,46 @@ EMPTY
        .then(function (stream) {
            video.srcObject = stream;
        })
-       .catch(function (err0r) {
+       .catch(function (error) {
            console.log("Something went wrong!");
        });
     }
+</script>
+<script>
+    var seconds = 3000;
+    $(document).ready(function() {
+        setInterval(function() {
+            var video = document.querySelector("#videoElement");
+            var canvas = document.querySelector("#canvas");
+
+            canvas.width = video.videoWidth;
+        	canvas.height = video.videoHeight;
+        	canvas.getContext('2d').drawImage(video, 0, 0);
+
+        	var data = canvas.toDataURL('image/jpeg', 1.0);
+
+        	var formData = new FormData();
+        	formData.append("imageBase64", data);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+
+        	$.ajax({
+        	   url: "{% url 'assistant:detect-face' %}",
+           	   data: formData,
+        	   cache: false,
+        	   contentType: false,
+        	   processData: false,
+        	   dataType: "json",
+        	   type: "POST",
+        	   success: function (data) {
+                   var ctx = canvas.getContext("2d");
+                   var image = new Image();
+                   image.onload = function() {
+                       ctx.drawImage(image, 0, 0);
+                   };
+                   image.src = data['imgB64'];
+        	   }
+        	});
+        }, seconds);
+    });
 </script>
 {% endblock %}
