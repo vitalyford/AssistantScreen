@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.contrib import messages
@@ -9,6 +9,15 @@ from .models import Info, QuickMessage
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
+
+
+def check_for_update(request):
+    context = {}
+    info = get_info()
+    if info is not None:
+        context['message'] = info.message
+    context['status'] = 'success'
+    return JsonResponse(context)
 
 
 def send_message(request):
@@ -41,11 +50,18 @@ def save_info(message: str):
     info.save()
 
 
-def index(request):
-    context = {}
+def get_info():
     info = Info.objects.all()
     if info.count() > 0:
-        context['info'] = info[0]
+        return info[0]
+    return None
+
+
+def index(request):
+    context = {}
+    info = get_info()
+    if info is not None:
+        context['info'] = info
     return render(request, 'assistant/index.html', context)
 
 

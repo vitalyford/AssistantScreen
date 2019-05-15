@@ -6,15 +6,56 @@ Discover Innovation &#8594; Deliver Success
 
 {% block content %}
 <div class="row d-flex align-items-center" style="min-height: 500px;">
-    <div class="col-md-4">
-        <h3 class="text-center font-weight-light">{{ info.message }}</h3>
+    <div class="col-md-3">
+        <h3 class="text-center font-weight-light" id="messageField">{{ info.message }}</h3>
         <h5 class="text-center font-weight-light font-italic mt-4">{{ info.message_timestamp }}</h5>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6 text-center">
+        <video autoplay="true" id="videoElement" width="100%;">
 
+    	</video>
     </div>
-    <div class="col-md-4">
-
+    <div class="col-md-3">
+EMPTY
     </div>
 </div>
+{% endblock %}
+
+{% block customjs %}
+<script>
+    var seconds = 60000;
+    var message = document.getElementById('messageField').innerHTML;
+    $(document).ready(function() {
+        setInterval(function() {
+            $.ajax({
+              url: "{% url 'assistant:check-for-update' %}",
+              dataType: "json",
+              success: function(json) {
+                  if (message != json['message']) {
+                      window.location = window.location.href;
+                  }
+              }
+          });
+      }, seconds);
+    });
+</script>
+<script>
+    var video = document.querySelector("#videoElement");
+
+    if (navigator.mediaDevices.getUserMedia) {
+       navigator.mediaDevices.getUserMedia({
+           video: {
+              facingMode: "user",
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+           }
+       })
+       .then(function (stream) {
+           video.srcObject = stream;
+       })
+       .catch(function (err0r) {
+           console.log("Something went wrong!");
+       });
+    }
+</script>
 {% endblock %}
