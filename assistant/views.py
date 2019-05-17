@@ -31,7 +31,7 @@ def opencv_face_detection(filename: str) -> str:
     image = cv2.imread(filename)
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    faces = FACE_CASCADE.detectMultiScale(image_grey, scaleFactor=1.1, minNeighbors=2, minSize=(25, 25), flags=0)
+    faces = FACE_CASCADE.detectMultiScale(image_grey, scaleFactor=1.1, minNeighbors=6, minSize=(25, 25), flags=0)
 
     for x, y, w, h in faces:
         sub_img = image[y - 10:y + h + 10, x - 10:x + w + 10]
