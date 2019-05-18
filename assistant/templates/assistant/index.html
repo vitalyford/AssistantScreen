@@ -21,7 +21,7 @@ Discover Innovation &#8594; Deliver Success
 
 {% block customjs %}
 <script>
-    var seconds = 60000;
+    var seconds_check = 60000;
     var message = document.getElementById('messageField').innerHTML;
     $(document).ready(function() {
         setInterval(function() {
@@ -34,7 +34,7 @@ Discover Innovation &#8594; Deliver Success
                   }
               }
           });
-      }, seconds);
+      }, seconds_check);
     });
 </script>
 <script>
@@ -57,9 +57,13 @@ Discover Innovation &#8594; Deliver Success
     }
 </script>
 <script>
-    var seconds = 1000;
+    const sleep = (milliseconds) => {
+        return new Promise(resolve => setTimeout(resolve, milliseconds))
+    };
+    var seconds = 500;
     var firstRequest = true;
-    $(document).ready(function() {
+    $(document).ready(async function() {
+        await sleep(3000);
         setInterval(function() {
             var video = document.querySelector('#videoElement');
             var canvas = document.querySelector('#canvas');
