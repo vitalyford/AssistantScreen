@@ -6,16 +6,17 @@ Discover Innovation &#8594; Deliver Success
 
 {% block content %}
 <div class="row d-flex align-items-center h-100 text-center" >
-    <div class="col-md-3">
+    <div class="col-md-4">
         <h3 class="font-weight-light" id="messageField">{{ info.message }}</h3>
         <h5 class="font-weight-light font-italic mt-4">{{ info.message_timestamp }}</h5>
     </div>
-    <div class="col-md-6 text-center">
+    <div class="col-md-4 text-center">
         <video autoplay="true" id="videoElement" class="w-100 border border-primary rounded"></video>
     </div>
-    <div class="col-md-3 text-center">
+    <div class="col-md-4 text-center">
         <h3 class="font-weight-light">Visitors</h3>
-        <canvas id="canvas" class="w-100"></canvas>
+        <canvas id="canvas" class="d-none"></canvas>
+        <div class="row" id="visitors"></div>
     </div>
 </div>
 {% endblock %}
@@ -61,8 +62,8 @@ Discover Innovation &#8594; Deliver Success
     var seconds = 3000;
     $(document).ready(function() {
         setInterval(function() {
-            var video = document.querySelector("#videoElement");
-            var canvas = document.querySelector("#canvas");
+            var video = document.querySelector('#videoElement');
+            var canvas = document.querySelector('#canvas');
 
             canvas.width = video.videoWidth;
         	canvas.height = video.videoHeight;
@@ -83,12 +84,37 @@ Discover Innovation &#8594; Deliver Success
         	   dataType: "json",
         	   type: "POST",
         	   success: function (data) {
-                   var ctx = canvas.getContext("2d");
-                   var image = new Image();
-                   image.onload = function() {
-                       ctx.drawImage(image, 0, 0);
-                   };
-                   image.src = data['imgB64'];
+                   if (data.hasOwnProperty('visitors')) {
+                       var container = document.querySelector('#visitors');
+                       while (container.firstChild) {
+                           container.removeChild(container.firstChild);
+                       }
+                       for (let i = 0; i < data['visitors'].length; i++) {
+                           let node = document.createElement('div');
+                           node.className = 'col-md-4 border border-primary rounded m-1';
+                           node.setAttribute('width', '180px');
+                           node.setAttribute('height', '180px');
+
+                           let c = document.createElement('canvas');
+                           c.className = 'w-100';
+                           c.setAttribute('width', '180px');
+                           c.setAttribute('height', '180px');
+                           let ctx = c.getContext("2d");
+                           let image = new Image();
+                           image.onload = function() {
+                               ctx.drawImage(image, 0, 0);
+                           };
+                           image.src = data['visitors'][i];
+
+                           let p = document.createElement('p');
+                           p.className = 'font-weight-light text-center';
+                           p.innerHTML = data['time'][i];
+
+                           node.appendChild(c);
+                           node.appendChild(p);
+                           container.appendChild(node);
+                       }
+                   }
         	   }
         	});
         }, seconds);

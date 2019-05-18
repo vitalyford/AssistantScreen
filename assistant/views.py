@@ -2,9 +2,9 @@ import base64
 import re
 import cv2
 import datetime
+import os
+import numpy as np
 from io import BytesIO
-
-from PIL import Image, ImageFilter
 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -27,8 +27,8 @@ EYE_CASCADE  = cv2.CascadeClassifier(EYE_CASCADE_XML)
 
 # kudos to https://github.com/JeeveshN/Face-Detect/blob/master/detect_face.py
 # for part of this function
-def opencv_face_detection(filename: str) -> str:
-    image = cv2.imread(filename)
+def opencv_face_detection(imageBase64: str) -> str:
+    image = cv2.imdecode(np.fromstring(base64.b64decode(imageBase64), np.uint8), cv2.IMREAD_COLOR)
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     faces = FACE_CASCADE.detectMultiScale(image_grey, scaleFactor=1.1, minNeighbors=6, minSize=(25, 25), flags=0)
@@ -36,7 +36,7 @@ def opencv_face_detection(filename: str) -> str:
     for x, y, w, h in faces:
         sub_img = image[y - 10:y + h + 10, x - 10:x + w + 10]
         eye_img = image_grey[y - 10:y + h + 10, x - 10:x + w + 10]
-        cv2.imwrite('visitors/' + str(datetime.datetime.now()).replace(':', '-') + ".jpg", sub_img)
+        cv2.imwrite('visitors/' + str(datetime.datetime.now()).replace(':', '-') + ".jpg", cv2.resize(sub_img, (180, 180)))
         # cv2.rectangle(image, (x, y), (x + w, y + h), (255, 255, 0), 2)
         # circle the face
         cv2.circle(image, (x + int(w / 2), y + int(h / 2)), int(max(w / 2, h / 2)), (255, 255, 0), 2)
@@ -49,36 +49,23 @@ def opencv_face_detection(filename: str) -> str:
     return opencv_image_to_base64(image)
 
 
+def get_recent_visitors_base64_images() -> []:
+    visitors_files = sorted(os.listdir('visitors/'), reverse=True)[:9]
+    return [opencv_image_to_base64(cv2.imread('visitors/' + v)) for v in visitors_files], [v.split('.')[0] for v in visitors_files]
+
+
 def detect_face(request):
-    filename = 'temp.jpg'
     context = {}
     imageBase64 = re.search(r'base64,(.*)', request.POST.get('imageBase64')).group(1)
-    img = save_image_from_base64(imageBase64, filename)
-    img = img.filter(ImageFilter.FIND_EDGES)
-    opencv_face_detection(filename)
-    context['imgB64'] = 'data:image/jpeg;base64,' + opencv_face_detection(filename)
-    # context['imgB64'] = 'data:image/jpeg;base64,' + PIL_image_to_base64(img)
+    context['imgB64'] = opencv_face_detection(imageBase64)
+    context['visitors'], context['time'] = get_recent_visitors_base64_images()
     context['status'] = 'success'
     return JsonResponse(context)
 
 
-def save_image_from_base64(imageBase64: str, filename: str) -> Image:
-    imgdata = base64.b64decode(imageBase64)
-    img = Image.open(BytesIO(imgdata))
-    with open(filename, 'wb') as f:
-        f.write(imgdata)
-    return img
-
-
 def opencv_image_to_base64(image) -> str:
     _, buffer = cv2.imencode('.jpg', image)
-    return base64.b64encode(buffer).decode('UTF-8')
-
-
-def PIL_image_to_base64(image: Image) -> str:
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG")
-    return base64.b64encode(buffered.getvalue()).decode('UTF-8')
+    return 'data:image/jpeg;base64,' + base64.b64encode(buffer).decode('UTF-8')
 
 
 def check_for_update(request):
