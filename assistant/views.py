@@ -28,37 +28,40 @@ EYE_CASCADE  = cv2.CascadeClassifier(EYE_CASCADE_XML)
 # kudos to https://github.com/JeeveshN/Face-Detect/blob/master/detect_face.py
 # for part of this function
 def opencv_face_detection(imageBase64: str) -> str:
+    face_detected = False
     image = cv2.imdecode(np.fromstring(base64.b64decode(imageBase64), np.uint8), cv2.IMREAD_COLOR)
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     faces = FACE_CASCADE.detectMultiScale(image_grey, scaleFactor=1.1, minNeighbors=6, minSize=(25, 25), flags=0)
 
     for x, y, w, h in faces:
+        face_detected = True
         sub_img = image[y - 10:y + h + 10, x - 10:x + w + 10]
-        eye_img = image_grey[y - 10:y + h + 10, x - 10:x + w + 10]
+        # eye_img = image_grey[y - 10:y + h + 10, x - 10:x + w + 10]
         cv2.imwrite('visitors/' + str(datetime.datetime.now()).replace(':', '-') + ".jpg", cv2.resize(sub_img, (180, 180)))
         # cv2.rectangle(image, (x, y), (x + w, y + h), (255, 255, 0), 2)
         # circle the face
-        cv2.circle(image, (x + int(w / 2), y + int(h / 2)), int(max(w / 2, h / 2)), (255, 255, 0), 2)
+        # cv2.circle(image, (x + int(w / 2), y + int(h / 2)), int(max(w / 2, h / 2)), (255, 255, 0), 2)
         # detect eyes
-        eyes = EYE_CASCADE.detectMultiScale(eye_img, scaleFactor=1.1, minNeighbors=2, minSize=(25, 25), flags=0)
+        # eyes = EYE_CASCADE.detectMultiScale(eye_img, scaleFactor=1.1, minNeighbors=2, minSize=(25, 25), flags=0)
         # draw eyes
-        for x_eye, y_eye, w_eye, h_eye in eyes:
-            cv2.circle(image, (x + x_eye + int(w_eye / 2) - 10, y + y_eye + int(h_eye / 2) - 10), int(min(w_eye / 2, h_eye / 2)), (0, 255, 0), 2)
+        # for x_eye, y_eye, w_eye, h_eye in eyes:
+        #     cv2.circle(image, (x + x_eye + int(w_eye / 2) - 10, y + y_eye + int(h_eye / 2) - 10), int(min(w_eye / 2, h_eye / 2)), (0, 255, 0), 2)
 
-    return opencv_image_to_base64(image)
+    return face_detected  # opencv_image_to_base64(image)
 
 
 def get_recent_visitors_base64_images() -> []:
     visitors_files = sorted(os.listdir('visitors/'), reverse=True)[:9]
-    return [opencv_image_to_base64(cv2.imread('visitors/' + v)) for v in visitors_files], [v.split('.')[0] for v in visitors_files]
+    return [opencv_image_to_base64(cv2.imread('visitors/' + v)) for v in visitors_files], [v.split('.')[0].split(' ')[1].replace('-', ':') for v in visitors_files]
 
 
 def detect_face(request):
     context = {}
     imageBase64 = re.search(r'base64,(.*)', request.POST.get('imageBase64')).group(1)
-    context['imgB64'] = opencv_face_detection(imageBase64)
-    context['visitors'], context['time'] = get_recent_visitors_base64_images()
+    context['face_detected'] = opencv_face_detection(imageBase64)
+    if context['face_detected'] or 'firstRequest' in request.POST:
+        context['visitors'], context['time'] = get_recent_visitors_base64_images()
     context['status'] = 'success'
     return JsonResponse(context)
 

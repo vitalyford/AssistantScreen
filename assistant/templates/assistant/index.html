@@ -6,12 +6,10 @@ Discover Innovation &#8594; Deliver Success
 
 {% block content %}
 <div class="row d-flex align-items-center h-100 text-center" >
-    <div class="col-md-4">
+    <div class="col-md-8">
         <h3 class="font-weight-light" id="messageField">{{ info.message }}</h3>
         <h5 class="font-weight-light font-italic mt-4">{{ info.message_timestamp }}</h5>
-    </div>
-    <div class="col-md-4 text-center">
-        <video autoplay="true" id="videoElement" class="w-100 border border-primary rounded"></video>
+        <video autoplay="true" id="videoElement" class="w-80 border border-primary rounded"></video>
     </div>
     <div class="col-md-4 text-center">
         <h3 class="font-weight-light">Visitors</h3>
@@ -59,7 +57,8 @@ Discover Innovation &#8594; Deliver Success
     }
 </script>
 <script>
-    var seconds = 3000;
+    var seconds = 1000;
+    var firstRequest = true;
     $(document).ready(function() {
         setInterval(function() {
             var video = document.querySelector('#videoElement');
@@ -72,7 +71,9 @@ Discover Innovation &#8594; Deliver Success
         	var data = canvas.toDataURL('image/jpeg', 1.0);
 
         	var formData = new FormData();
-        	formData.append("imageBase64", data);
+            if (firstRequest) formData.append('firstRequest', firstRequest);
+            firstRequest = false;
+        	formData.append('imageBase64', data);
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
 
         	$.ajax({
@@ -91,12 +92,12 @@ Discover Innovation &#8594; Deliver Success
                        }
                        for (let i = 0; i < data['visitors'].length; i++) {
                            let node = document.createElement('div');
-                           node.className = 'col-md-4 border border-primary rounded m-1';
+                           node.className = 'col-md-4';
                            node.setAttribute('width', '180px');
                            node.setAttribute('height', '180px');
 
                            let c = document.createElement('canvas');
-                           c.className = 'w-100';
+                           c.className = 'w-100 border border-primary rounded mt-3';
                            c.setAttribute('width', '180px');
                            c.setAttribute('height', '180px');
                            let ctx = c.getContext("2d");
