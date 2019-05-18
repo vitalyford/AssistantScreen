@@ -52,7 +52,12 @@ def opencv_face_detection(imageBase64: str) -> str:
 
 
 def get_recent_visitors_base64_images() -> []:
-    visitors_files = sorted(os.listdir('visitors/'), reverse=True)[:9]
+    visitors_dir = sorted(os.listdir('visitors/'), reverse=True)
+    # remove visitor images when there are too many of them
+    if len(visitors_dir) > 100:
+        for v in range(100, len(visitors_dir)):
+            os.remove(v)
+    visitors_files = visitors_dir[:9]
     return [opencv_image_to_base64(cv2.imread('visitors/' + v)) for v in visitors_files], [v.split('.')[0].split(' ')[1].replace('-', ':') for v in visitors_files]
 
 
