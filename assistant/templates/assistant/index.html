@@ -140,12 +140,16 @@ Discover Innovation &#8594; Deliver Success
             let fgmask = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC1);
             let fgbg = new cv.BackgroundSubtractorMOG2();
             let final = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC4);
+            let dst = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC4);
+            let ksize = new cv.Size(3, 3);
             while (1) {
                 try {
                     cap.read(frame);
                     fgbg.apply(frame, fgmask);
-                    //cv.bitwise_or(frame, frame, final, mask=fgmask);
-                    cv.imshow('canvas-filtered', fgmask); // cv.bitwise_or(frame, frame, mask=fgmask)
+                    //cv.bitwise_or(frame, frame, final, fgmask);
+                    cv.medianBlur(fgmask, dst, 3);
+                    //cv.GaussianBlur(fgmask, dst, ksize, 0, 0, cv.BORDER_DEFAULT);
+                    cv.imshow('canvas-filtered', dst); // cv.bitwise_or(frame, frame, mask=fgmask)
                 } catch (err) {
                     console.log(err);
                 }
@@ -154,7 +158,7 @@ Discover Innovation &#8594; Deliver Success
                 let delay = 1000/FPS;
                 await sleep(delay);
             }
-            frame.delete(); fgmask.delete(); fgbg.delete(); final.delete();
+            frame.delete(); fgmask.delete(); fgbg.delete(); dst.delete(); final.delete();
         }
         else {
             setTimeout(processVideo, 5000);

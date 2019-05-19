@@ -21,8 +21,25 @@ from django.contrib.auth.hashers import check_password
 
 FACE_CASCADE_XML = "assets/face_cascade.xml"
 EYE_CASCADE_XML  = "assets/eye_cascade.xml"
-FACE_CASCADE = cv2.CascadeClassifier(FACE_CASCADE_XML)
-EYE_CASCADE  = cv2.CascadeClassifier(EYE_CASCADE_XML)
+FACE_CASCADE     = cv2.CascadeClassifier(FACE_CASCADE_XML)
+EYE_CASCADE      = cv2.CascadeClassifier(EYE_CASCADE_XML)
+VISITORS_ROOT    = 'visitors/'
+
+
+def verify_new_face(face) -> bool:
+    face_grey = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+    MIN_FACE_SIMILARITY_THRESH = 5000
+    visitors_files = sorted(os.listdir(VISITORS_ROOT), reverse=True)[:9]
+    for v in visitors_files:
+        known_grey = cv2.imread(VISITORS_ROOT + v, cv2.IMREAD_GRAYSCALE)
+        subtracted = cv2.subtract(face_grey, known_grey)
+        _, thresholded = cv2.threshold(subtracted, 50, 255, cv2.THRESH_BINARY)
+        count_non_zero = cv2.countNonZero(thresholded)
+        print('Non zero: ' + str(count_non_zero))
+        if count_non_zero < MIN_FACE_SIMILARITY_THRESH:
+            print('Face are similar, skipping this one...')
+            return False  # if faces are similar
+    return True
 
 
 # kudos to https://github.com/JeeveshN/Face-Detect/blob/master/detect_face.py
@@ -34,31 +51,33 @@ def opencv_face_detection(imageBase64: str) -> str:
 
     faces = FACE_CASCADE.detectMultiScale(image_grey, scaleFactor=1.1, minNeighbors=6, minSize=(25, 25), flags=0)
 
+    leeway = 10
     for x, y, w, h in faces:
-        face_detected = True
-        sub_img = image[y - 10:y + h + 10, x - 10:x + w + 10]
-        # eye_img = image_grey[y - 10:y + h + 10, x - 10:x + w + 10]
-        cv2.imwrite('visitors/' + str(datetime.datetime.now()).replace(':', '-') + ".jpg", cv2.resize(sub_img, (180, 180)))
-        # cv2.rectangle(image, (x, y), (x + w, y + h), (255, 255, 0), 2)
-        # circle the face
-        # cv2.circle(image, (x + int(w / 2), y + int(h / 2)), int(max(w / 2, h / 2)), (255, 255, 0), 2)
-        # detect eyes
-        # eyes = EYE_CASCADE.detectMultiScale(eye_img, scaleFactor=1.1, minNeighbors=2, minSize=(25, 25), flags=0)
-        # draw eyes
-        # for x_eye, y_eye, w_eye, h_eye in eyes:
-        #     cv2.circle(image, (x + x_eye + int(w_eye / 2) - 10, y + y_eye + int(h_eye / 2) - 10), int(min(w_eye / 2, h_eye / 2)), (0, 255, 0), 2)
+        sub_img = cv2.resize(image[y - leeway:y + h + leeway, x - leeway:x + w + leeway], (180, 180))
+        if verify_new_face(sub_img):
+            face_detected = True
+            # eye_img = image_grey[y - 10:y + h + 10, x - 10:x + w + 10]
+            cv2.imwrite(VISITORS_ROOT + str(datetime.datetime.now()).replace(':', '-') + ".jpg", sub_img)
+            # cv2.rectangle(image, (x, y), (x + w, y + h), (255, 255, 0), 2)
+            # circle the face
+            # cv2.circle(image, (x + int(w / 2), y + int(h / 2)), int(max(w / 2, h / 2)), (255, 255, 0), 2)
+            # detect eyes
+            # eyes = EYE_CASCADE.detectMultiScale(eye_img, scaleFactor=1.1, minNeighbors=2, minSize=(25, 25), flags=0)
+            # draw eyes
+            # for x_eye, y_eye, w_eye, h_eye in eyes:
+            #     cv2.circle(image, (x + x_eye + int(w_eye / 2) - 10, y + y_eye + int(h_eye / 2) - 10), int(min(w_eye / 2, h_eye / 2)), (0, 255, 0), 2)
 
     return face_detected  # opencv_image_to_base64(image)
 
 
 def get_recent_visitors_base64_images() -> []:
-    visitors_dir = sorted(os.listdir('visitors/'), reverse=True)
+    visitors_dir = sorted(os.listdir(VISITORS_ROOT), reverse=True)
     # remove visitor images when there are too many of them
     if len(visitors_dir) > 100:
         for v in range(100, len(visitors_dir)):
-            os.remove('visitors/' + visitors_dir[v])
+            os.remove(VISITORS_ROOT + visitors_dir[v])
     visitors_files = visitors_dir[:9]
-    return [opencv_image_to_base64(cv2.imread('visitors/' + v)) for v in visitors_files], [v.split('.')[0].split(' ')[1].replace('-', ':') for v in visitors_files]
+    return [opencv_image_to_base64(cv2.imread(VISITORS_ROOT + v)) for v in visitors_files], [v.split('.')[0].split(' ')[1].replace('-', ':') for v in visitors_files]
 
 
 def detect_face(request):
