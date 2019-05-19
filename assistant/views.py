@@ -19,8 +19,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 
 
-FACE_CASCADE_XML = "faces/face_cascade.xml"
-EYE_CASCADE_XML  = "faces/eye_cascade.xml"
+FACE_CASCADE_XML = "assets/face_cascade.xml"
+EYE_CASCADE_XML  = "assets/eye_cascade.xml"
 FACE_CASCADE = cv2.CascadeClassifier(FACE_CASCADE_XML)
 EYE_CASCADE  = cv2.CascadeClassifier(EYE_CASCADE_XML)
 

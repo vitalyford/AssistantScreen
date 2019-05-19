@@ -9,7 +9,8 @@ Discover Innovation &#8594; Deliver Success
     <div class="col-md-8">
         <h3 class="font-weight-light" id="messageField">{{ info.message }}</h3>
         <h5 class="font-weight-light font-italic mt-4">{{ info.message_timestamp }}</h5>
-        <video autoplay="true" id="videoElement" class="w-80 border border-primary rounded"></video>
+        <canvas id="canvas-filtered" class="w-60 border border-primary rounded" width="640" height="480"></canvas>
+        <video autoplay="true" id="videoElement" class="w-60 border border-primary rounded d-none" width="640" height="480"></video>
     </div>
     <div class="col-md-4 text-center">
         <h3 class="font-weight-light">Visitors</h3>
@@ -20,6 +21,7 @@ Discover Innovation &#8594; Deliver Success
 {% endblock %}
 
 {% block customjs %}
+<script async src="https://docs.opencv.org/3.4/opencv.js" onload="processVideo();" type="text/javascript"></script>
 <script>
     var seconds_check = 60000;
     var message = document.getElementById('messageField').innerHTML;
@@ -60,14 +62,13 @@ Discover Innovation &#8594; Deliver Success
     const sleep = (milliseconds) => {
         return new Promise(resolve => setTimeout(resolve, milliseconds))
     };
-    var seconds = 500;
+    var seconds = 1000;
+    var video = document.querySelector('#videoElement');
+    var canvas = document.querySelector('#canvas');
     var firstRequest = true;
     $(document).ready(async function() {
         await sleep(5000);
         setInterval(function() {
-            var video = document.querySelector('#videoElement');
-            var canvas = document.querySelector('#canvas');
-
             canvas.width = video.videoWidth;
         	canvas.height = video.videoHeight;
         	canvas.getContext('2d').drawImage(video, 0, 0);
@@ -124,5 +125,40 @@ Discover Innovation &#8594; Deliver Success
         	});
         }, seconds);
     });
+</script>
+<script>
+    var canvasFiltered = document.querySelector('#canvas-filtered');
+    let videoInput = document.getElementById('videoElement');
+    canvasFiltered.width = videoInput.width;
+    canvasFiltered.height = videoInput.height;
+    // based on https://docs.opencv.org/3.4/de/df4/tutorial_js_bg_subtraction.html
+    async function processVideo() {
+        // wait for opencv loading
+        if (typeof cv.Mat != "undefined") {
+            let cap = new cv.VideoCapture(videoInput);
+            let frame = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC4);
+            let fgmask = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC1);
+            let fgbg = new cv.BackgroundSubtractorMOG2();
+            let final = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC4);
+            while (1) {
+                try {
+                    cap.read(frame);
+                    fgbg.apply(frame, fgmask);
+                    //cv.bitwise_or(frame, frame, final, mask=fgmask);
+                    cv.imshow('canvas-filtered', fgmask); // cv.bitwise_or(frame, frame, mask=fgmask)
+                } catch (err) {
+                    console.log(err);
+                }
+                // schedule the next one
+                const FPS = 30;
+                let delay = 1000/FPS;
+                await sleep(delay);
+            }
+            frame.delete(); fgmask.delete(); fgbg.delete(); final.delete();
+        }
+        else {
+            setTimeout(processVideo, 5000);
+        }
+    }
 </script>
 {% endblock %}
