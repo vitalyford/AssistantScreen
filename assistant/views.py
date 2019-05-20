@@ -28,16 +28,16 @@ VISITORS_ROOT    = 'visitors/'
 
 def verify_new_face(face) -> bool:
     face_grey = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
-    MIN_FACE_SIMILARITY_THRESH = 5000
+    MIN_FACE_SIMILARITY_THRESH = 2000
     visitors_files = sorted(os.listdir(VISITORS_ROOT), reverse=True)[:9]
     for v in visitors_files:
         known_grey = cv2.imread(VISITORS_ROOT + v, cv2.IMREAD_GRAYSCALE)
         subtracted = cv2.subtract(face_grey, known_grey)
         _, thresholded = cv2.threshold(subtracted, 50, 255, cv2.THRESH_BINARY)
         count_non_zero = cv2.countNonZero(thresholded)
-        print('Non zero: ' + str(count_non_zero))
+        print('Non zero for ' + v + ': ' + str(count_non_zero))
         if count_non_zero < MIN_FACE_SIMILARITY_THRESH:
-            print('Face are similar, skipping this one...')
+            print('Face is similar to ' + v + ', skipping...')
             return False  # if faces are similar
     return True
 
