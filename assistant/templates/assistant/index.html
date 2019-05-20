@@ -5,17 +5,23 @@ Discover Innovation &#8594; Deliver Success
 {% endblock %}
 
 {% block content %}
-<div class="row d-flex align-items-center h-100 text-center" >
+<div class="row d-flex align-items-center text-center" >
     <div class="col-md-8">
         <h3 class="font-weight-light" id="messageField">{{ info.message }}</h3>
         <h5 class="font-weight-light font-italic mt-4">{{ info.message_timestamp }}</h5>
-        <canvas id="canvas-filtered" class="w-60 border border-primary rounded" width="640" height="480"></canvas>
-        <video autoplay="true" id="videoElement" class="w-60 border border-primary rounded d-none" width="640" height="480"></video>
+        <div class="row justify-content-md-center">
+            <div class="col-12 col-md-8 d-flex">
+                <canvas id="canvas-filtered" class="border border-primary rounded" style="width: 100%; height: 100%;"></canvas>
+            </div>
+        </div>
+        <video autoplay="true" id="videoElement" class="border border-primary rounded d-none" width="640" height="480"></video>
     </div>
     <div class="col-md-4 text-center">
         <h3 class="font-weight-light">Visitors</h3>
         <canvas id="canvas" class="d-none"></canvas>
-        <div class="row" id="visitors"></div>
+        <div class="container">
+            <div class="row justify-content-center" id="visitors"></div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -97,7 +103,7 @@ Discover Innovation &#8594; Deliver Success
                        }
                        for (let i = 0; i < data['visitors'].length; i++) {
                            let node = document.createElement('div');
-                           node.className = 'col-md-4';
+                           node.className = 'col-6 col-md-6 col-lg-4';
                            node.setAttribute('width', '180px');
                            node.setAttribute('height', '180px');
 
@@ -128,19 +134,18 @@ Discover Innovation &#8594; Deliver Success
 </script>
 <script>
     var canvasFiltered = document.querySelector('#canvas-filtered');
-    let videoInput = document.getElementById('videoElement');
-    canvasFiltered.width = videoInput.width;
-    canvasFiltered.height = videoInput.height;
+    canvasFiltered.width = video.videoWidth;
+    canvasFiltered.height = video.videoHeight;
     // based on https://docs.opencv.org/3.4/de/df4/tutorial_js_bg_subtraction.html
     async function processVideo() {
         // wait for opencv loading
         if (typeof cv.Mat != "undefined") {
-            let cap = new cv.VideoCapture(videoInput);
-            let frame = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC4);
-            let fgmask = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC1);
+            let cap = new cv.VideoCapture(video);
+            let frame = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+            let fgmask = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC1);
             let fgbg = new cv.BackgroundSubtractorMOG2();
-            let final = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC4);
-            let dst = new cv.Mat(videoInput.height, videoInput.width, cv.CV_8UC4);
+            let final = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+            let dst = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
             let ksize = new cv.Size(3, 3);
             while (1) {
                 try {
