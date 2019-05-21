@@ -36,7 +36,7 @@ def verify_new_face(face) -> bool:
         _, thresholded = cv2.threshold(subtracted, 50, 255, cv2.THRESH_BINARY)
         count_non_zero = cv2.countNonZero(thresholded)
         print('Non zero for ' + v + ': ' + str(count_non_zero))
-        if count_non_zero < MIN_FACE_SIMILARITY_THRESH:
+        if (count_non_zero < MIN_FACE_SIMILARITY_THRESH) and (datetime.datetime.now() - datetime.datetime.strptime(v.split('.')[0], '%Y-%m-%d %H-%M-%S')).total_seconds() < 300:  # if past 5 min, then that is a new face
             print('Face is similar to ' + v + ', skipping...')
             return False  # if faces are similar
     return True
