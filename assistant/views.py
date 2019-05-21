@@ -8,7 +8,7 @@ from io import BytesIO
 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.urls import reverse_lazy
 from django.contrib import messages
 
 from .models import Info, QuickMessage
@@ -113,7 +113,7 @@ def send_message(request):
                 id = int(request.POST.get('quickSelect'))
             except:
                 messages.warning(request, 'Do not mess with the ID field')
-                return HttpResponseRedirect(reverse('assistant:send-message'))
+                return HttpResponseRedirect(reverse_lazy('assistant:send-message'))
             quick_message = get_object_or_404(QuickMessage, id=id)
             print('Hi ' + quick_message.message)
             save_info(quick_message.message)
@@ -121,7 +121,7 @@ def send_message(request):
             context = {}
             context['quick_messages'] = QuickMessage.objects.all()
             return render(request, 'assistant/send-message.html', context)
-    return HttpResponseRedirect(reverse('assistant:index'))
+    return HttpResponseRedirect(reverse_lazy('assistant:index'))
 
 
 def save_info(message: str):
@@ -157,7 +157,7 @@ def login_user(request):
         if user is not None:
             # request.session.set_expiry(settings.SESSION_EXPIRY_TIME)
             login(request, user)
-        return HttpResponseRedirect(reverse('assistant:index'))
+        return HttpResponseRedirect(reverse_lazy('assistant:index'))
     else:
         context = {}
         return render(request, 'assistant/login.html', context)
@@ -165,4 +165,4 @@ def login_user(request):
 
 def logout_user(request):
     logout(request)
-    return HttpResponseRedirect(reverse('assistant:index'))
+    return HttpResponseRedirect(reverse_lazy('assistant:index'))
