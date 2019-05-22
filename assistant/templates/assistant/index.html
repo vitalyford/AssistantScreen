@@ -17,7 +17,7 @@ Discover Innovation &#8594; Deliver Success
         <video autoplay="true" id="videoElement" class="border border-primary rounded d-none" width="640" height="480"></video>
     </div>
     <div class="col-md-4 text-center">
-        <h3 class="font-weight-light">Visitors</h3>
+        <h3 class="font-weight-light">Visitors{% if request.user.is_superuser %} <a href="{% url 'assistant:delete-all' %}">(clear)</a>{% endif %}</h3>
         <canvas id="canvas" class="d-none"></canvas>
         <div class="container">
             <div class="row justify-content-center" id="visitors"></div>

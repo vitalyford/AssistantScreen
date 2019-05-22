@@ -26,6 +26,15 @@ EYE_CASCADE      = cv2.CascadeClassifier(EYE_CASCADE_XML)
 VISITORS_ROOT    = 'visitors/'
 
 
+def delete_all(request):
+    if request.user.is_superuser:
+        visitors_dir = os.listdir(VISITORS_ROOT)
+        visitors_dir.remove('.gitignore')
+        for v in visitors_dir:
+            os.remove(VISITORS_ROOT + v)
+    return HttpResponseRedirect(reverse_lazy('assistant:index'))
+
+
 def delete_visitor(request):
     context = {}
     context['status'] = 'error'
