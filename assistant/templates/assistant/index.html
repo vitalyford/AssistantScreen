@@ -180,7 +180,7 @@ Discover Innovation &#8594; Deliver Success
             let cap = new cv.VideoCapture(video);
             let frame = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
             let fgmask = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC1);
-            let fgbg = new cv.BackgroundSubtractorMOG2();
+            let fgbg = new cv.BackgroundSubtractorMOG2(500, 16, false); // defaults with no shadow detection
             let final = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
             let dst = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
             let ksize = new cv.Size(3, 3);
@@ -190,6 +190,7 @@ Discover Innovation &#8594; Deliver Success
                     fgbg.apply(frame, fgmask);
                     //cv.bitwise_or(frame, frame, final, fgmask);
                     cv.medianBlur(fgmask, dst, 3);
+                    //frame.copyTo(dst, fgmask);
                     //cv.GaussianBlur(fgmask, dst, ksize, 0, 0, cv.BORDER_DEFAULT);
                     cv.imshow('canvas-filtered', dst); // cv.bitwise_or(frame, frame, mask=fgmask)
                 } catch (err) {
