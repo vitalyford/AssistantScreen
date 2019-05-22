@@ -5,6 +5,7 @@ from . import views
 app_name = 'assistant'
 urlpatterns = [
     path('', views.index, name='index'),
+    path('delete-visitor/', views.delete_visitor, name='delete-visitor'),
     path('detect-face/', views.detect_face, name='detect-face'),
     path('send-message/', views.send_message, name='send-message'),
     path('check-for-update/', views.check_for_update, name='check-for-update'),

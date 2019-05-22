@@ -65,6 +65,24 @@ Discover Innovation &#8594; Deliver Success
     }
 </script>
 <script>
+    function submitDeleteForm(currObj) {
+        var formData = new FormData();
+        formData.append('visitor_name', currObj.name);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        $.ajax({
+            url: {% url 'assistant:delete-visitor' %},
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(json) {
+                firstRequest = true;
+            }
+        });
+        return false;
+    }
+</script>
+<script>
     const sleep = (milliseconds) => {
         return new Promise(resolve => setTimeout(resolve, milliseconds))
     };
@@ -102,6 +120,15 @@ Discover Innovation &#8594; Deliver Success
                            container.removeChild(container.firstChild);
                        }
                        for (let i = 0; i < data['visitors'].length; i++) {
+                           {% if request.user.is_superuser %}
+                               let aLink = document.createElement('a');
+                               aLink.setAttribute('href', '#');
+                               aLink.setAttribute('onclick', 'submitDeleteForm(this)');
+                               aLink.setAttribute('name', data['names'][i]);
+                               aLink.setAttribute('data-toggle', 'tooltip');
+                               aLink.setAttribute('data-placement', 'top');
+                               aLink.setAttribute('title', 'Delete ' + data['time'][i]);
+                           {% endif %}
                            let node = document.createElement('div');
                            node.className = 'col-6 col-md-6 col-lg-4';
                            node.setAttribute('width', '180px');
@@ -123,9 +150,19 @@ Discover Innovation &#8594; Deliver Success
                            p.innerHTML = data['time'][i];
 
                            node.appendChild(c);
-                           node.appendChild(p);
+                           {% if request.user.is_superuser %}
+                               aLink.appendChild(p);
+                               node.appendChild(aLink);
+                           {% else %}
+                               node.appendChild(p);
+                           {% endif %}
                            container.appendChild(node);
                        }
+                       {% if request.user.is_superuser %}
+                           $(function () {
+                               $('[data-toggle="tooltip"]').tooltip()
+                           });
+                       {% endif %}
                    }
         	   }
         	});

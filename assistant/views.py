@@ -26,6 +26,19 @@ EYE_CASCADE      = cv2.CascadeClassifier(EYE_CASCADE_XML)
 VISITORS_ROOT    = 'visitors/'
 
 
+def delete_visitor(request):
+    context = {}
+    context['status'] = 'error'
+    if request.user.is_superuser:
+        # make sure that we are deleting only files in the visitors directory
+        visitors_files = os.listdir(VISITORS_ROOT)
+        visitor_name = request.POST.get('visitor_name')
+        if visitor_name in visitors_files:
+            os.remove(VISITORS_ROOT + visitor_name)
+            context['status'] = 'success'
+    return JsonResponse(context)
+
+
 def verify_new_face(face) -> bool:
     face_grey = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
     MIN_FACE_SIMILARITY_THRESH = 2000
@@ -79,7 +92,7 @@ def get_recent_visitors_base64_images() -> []:
         for v in range(100, len(visitors_dir)):
             os.remove(VISITORS_ROOT + visitors_dir[v])
     visitors_files = visitors_dir[:9]
-    return [opencv_image_to_base64(cv2.imread(VISITORS_ROOT + v)) for v in visitors_files], [v.split('.')[0].split(' ')[1].replace('-', ':') for v in visitors_files]
+    return [opencv_image_to_base64(cv2.imread(VISITORS_ROOT + v)) for v in visitors_files], [v.split('.')[0].split(' ')[1].replace('-', ':') for v in visitors_files], [v for v in visitors_files]
 
 
 def detect_face(request):
@@ -87,7 +100,7 @@ def detect_face(request):
     imageBase64 = re.search(r'base64,(.*)', request.POST.get('imageBase64')).group(1)
     context['face_detected'] = opencv_face_detection(imageBase64)
     if context['face_detected'] or 'firstRequest' in request.POST:
-        context['visitors'], context['time'] = get_recent_visitors_base64_images()
+        context['visitors'], context['time'], context['names'] = get_recent_visitors_base64_images()
     context['status'] = 'success'
     return JsonResponse(context)
 
