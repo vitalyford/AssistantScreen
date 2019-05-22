@@ -31,6 +31,7 @@ def verify_new_face(face) -> bool:
     MIN_FACE_SIMILARITY_THRESH = 2000
     visitors_files = sorted(os.listdir(VISITORS_ROOT), reverse=True)[:9]
     for v in visitors_files:
+        if v == '.gitignore': continue
         known_grey = cv2.imread(VISITORS_ROOT + v, cv2.IMREAD_GRAYSCALE)
         subtracted = cv2.subtract(face_grey, known_grey)
         _, thresholded = cv2.threshold(subtracted, 50, 255, cv2.THRESH_BINARY)
